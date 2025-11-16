@@ -320,14 +320,20 @@ def process_turnstile_request(
                 turnstile_token = turnstile.value
             except Exception as e:
                 logging.error(f"[{time.time()}] 获取turnstile_token时出错: {e}")
-            if cf_clearance and turnstile_token:
+            # 修改：只要有 turnstile_token 就可以（某些网站没有 5秒盾，所以没有 cf_clearance）
+            if turnstile_token:
+                logging.info(f"[{time.time()}] 成功获取到turnstile_token")
+                if cf_clearance:
+                    logging.info(f"[{time.time()}] 同时也获取到cf_clearance")
+                else:
+                    logging.info(f"[{time.time()}] 注意：未获取到cf_clearance（网站可能没有5秒盾）")
                 break
             retry_count += 1
             time.sleep(retry_interval)
-            logging.info(f"[{time.time()}] 正在第{retry_count}次尝试获取cf_clearance和turnstile_token...")
-        if not cf_clearance:
-            logging.error(f"[{time.time()}] 未能获取到cf_clearance cookie和turnstile_token")
-            result_obj.set_error("未能获取到cf_clearance cookie和turnstile_token")
+            logging.info(f"[{time.time()}] 正在第{retry_count}次尝试获取turnstile_token...")
+        if not turnstile_token:
+            logging.error(f"[{time.time()}] 未能获取到turnstile_token")
+            result_obj.set_error("未能获取到turnstile_token")
             return
         cookies = {cookie.get("name", ""): cookie.get("value", " ") for cookie in driver.cookies()}
         cookies["turnstile_token"] = turnstile_token
