@@ -59,8 +59,8 @@ RUN pip3 install -r requirements.txt
 RUN pip3 install -r server_requirements.txt
 
 
-# Expose the port for the FastAPI server
-EXPOSE 8000
+# Expose the port for the FastAPI server (default 8000, can be overridden via SERVER_PORT env)
+EXPOSE 8000 10000
 
 # Copy and set up startup script
 COPY docker_startup.sh /
