@@ -154,17 +154,25 @@ class CloudflareBypasser:
         if self.is_bypassed():
             self.log_message("成功绕过turnstile前的challenge验证")
         else:
-            self.log_message("绕过turnstile前的challenge验证失败")
+            self.log_message("绕过turnstile前的challenge验证失败（可能没有5秒盾，继续处理Turnstile）")
+        # 处理 Turnstile：增加等待时间，因为 Turnstile 可能需要更长时间自动完成
         try_count = 0
+        max_turnstile_wait = 30  # 最多等待30次（60秒）
         while not self.is_turnstile():
-            if 0 < self.max_retries + 1 <= try_count:
-                self.log_message("超过最大重试次数，绕过失败")
+            if try_count >= max_turnstile_wait:
+                self.log_message("Turnstile等待超时，停止等待")
                 break
-            self.log_message(f"尝试 {try_count + 1}: 检测到验证页面，正在尝试绕过...")
+            if 0 < self.max_retries + 1 <= try_count:
+                self.log_message("超过最大重试次数，但继续等待Turnstile自动完成...")
+                # 即使超过重试次数，也继续等待，因为 Turnstile 可能需要更长时间
+            if try_count == 0:
+                self.log_message("等待Turnstile验证自动完成...")
+            elif try_count % 5 == 0:  # 每5次（10秒）输出一次日志
+                self.log_message(f"等待Turnstile验证中... (已等待 {try_count * 2} 秒)")
             self.click_verification_button(turnstile=True)
             try_count += 1
-            time.sleep(2)
+            time.sleep(2)  # 每次等待2秒
         if self.is_turnstile():
             self.log_message("成功绕过turnstile验证")
         else:
-            self.log_message("绕过turnstile验证失败")
+            self.log_message("绕过turnstile验证失败（可能超时或需要手动交互）")
