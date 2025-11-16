@@ -6,21 +6,18 @@ on:
       - main
       - master
     paths:
-      - 'CloudflareBypassForScraping/**'
-      - '.github/workflows/build-cloudflare-bypass.yml'
+      - '**'
+      - '!.github/workflows/**'
   pull_request:
     branches:
       - main
       - master
-    paths:
-      - 'CloudflareBypassForScraping/**'
-      - '.github/workflows/build-cloudflare-bypass.yml'
   workflow_dispatch:  # 允许手动触发
 
 env:
   IMAGE_NAME: cloudflare-bypass-forscraping
   REGISTRY: ghcr.io
-  DOCKERFILE_PATH: CloudflareBypassForScraping/Dockerfile
+  DOCKERFILE_PATH: Dockerfile
 
 jobs:
   build-and-push:
@@ -59,7 +56,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ./CloudflareBypassForScraping
+          context: .
           file: ${{ env.DOCKERFILE_PATH }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
